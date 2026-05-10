@@ -1,204 +1,101 @@
 #include <bits/stdc++.h>
 #include <omp.h>
-
 using namespace std;
 
-// ---------------- Sequential Functions ----------------
-
-int minval_sequential(const vector<int> &arr)
-{
-    int minval = arr[0];
-
-    for (int val : arr)
-    {
-        if (val < minval)
-            minval = val;
-    }
-
-    return minval;
+int min_seq(vector<int> &arr) {
+    int mn = INT_MAX;
+    for (int x : arr)
+        if (x < mn) mn = x;
+    return mn;
 }
 
-int maxval_sequential(const vector<int> &arr)
-{
-    int maxval = arr[0];
-
-    for (int val : arr)
-    {
-        if (val > maxval)
-            maxval = val;
-    }
-
-    return maxval;
+int max_seq(vector<int> &arr) {
+    int mx = INT_MIN;
+    for (int x : arr)
+        if (x > mx) mx = x;
+    return mx;
 }
 
-long long sum_sequential(const vector<int> &arr)
-{
+long long sum_seq(vector<int> &arr) {
     long long sum = 0;
-
-    for (int val : arr)
-    {
-        sum += val;
-    }
-
+    for (int x : arr)
+        sum += x;
     return sum;
 }
 
-double average_sequential(const vector<int> &arr)
-{
-    return (double)sum_sequential(arr) / arr.size();
+double avg_seq(vector<int> &arr) {
+    return (double)sum_seq(arr) / arr.size();
 }
 
-// ---------------- Parallel Functions ----------------
-
-int minval_parallel(const vector<int> &arr)
-{
-    int minval = arr[0];
-
-    #pragma omp parallel for reduction(min:minval)
+int min_par(vector<int> &arr) {
+    int mn = INT_MAX;
+    #pragma omp parallel for reduction(min:mn)
     for (int i = 0; i < arr.size(); i++)
-    {
-        if (arr[i] < minval)
-            minval = arr[i];
-    }
-
-    return minval;
+        if (arr[i] < mn) mn = arr[i];
+    return mn;
 }
 
-int maxval_parallel(const vector<int> &arr)
-{
-    int maxval = arr[0];
-
-    #pragma omp parallel for reduction(max:maxval)
+int max_par(vector<int> &arr) {
+    int mx = INT_MIN;
+    #pragma omp parallel for reduction(max:mx)
     for (int i = 0; i < arr.size(); i++)
-    {
-        if (arr[i] > maxval)
-            maxval = arr[i];
-    }
-
-    return maxval;
+        if (arr[i] > mx) mx = arr[i];
+    return mx;
 }
 
-long long sum_parallel(const vector<int> &arr)
-{
+long long sum_par(vector<int> &arr) {
     long long sum = 0;
-
     #pragma omp parallel for reduction(+:sum)
     for (int i = 0; i < arr.size(); i++)
-    {
         sum += arr[i];
-    }
-
     return sum;
 }
 
-double average_parallel(const vector<int> &arr)
-{
-    return (double)sum_parallel(arr) / arr.size();
+double avg_par(vector<int> &arr) {
+    return (double)sum_par(arr) / arr.size();
 }
 
-// ---------------- Main Function ----------------
-
-int main()
-{
-    int n = 50000000;
+int main() {
+    int n;
+    cin >> n;
 
     vector<int> arr(n);
-
-    // Initialize array
     for (int i = 0; i < n; i++)
-    {
         arr[i] = rand() % 1000;
-    }
 
     double start, end;
 
-    // -------- Sequential Minimum --------
     start = omp_get_wtime();
-
-    int seq_min = minval_sequential(arr);
-
+    int mn1 = min_seq(arr);
+    int mx1 = max_seq(arr);
+    long long sum1 = sum_seq(arr);
+    double avg1 = avg_seq(arr);
     end = omp_get_wtime();
 
-    cout << "\nSequential Minimum Value : " << seq_min << endl;
-    cout << "Sequential Min Time      : "
-         << (end - start) << " seconds\n";
+    double seq_time = end - start;
 
-    // -------- Sequential Maximum --------
     start = omp_get_wtime();
-
-    int seq_max = maxval_sequential(arr);
-
+    int mn2 = min_par(arr);
+    int mx2 = max_par(arr);
+    long long sum2 = sum_par(arr);
+    double avg2 = avg_par(arr);
     end = omp_get_wtime();
 
-    cout << "\nSequential Maximum Value : " << seq_max << endl;
-    cout << "Sequential Max Time      : "
-         << (end - start) << " seconds\n";
+    double par_time = end - start;
 
-    // -------- Sequential Sum --------
-    start = omp_get_wtime();
+    cout << "Sequential Results:\n";
+    cout << "Min = " << mn1 << "\n";
+    cout << "Max = " << mx1 << "\n";
+    cout << "Sum = " << sum1 << "\n";
+    cout << "Avg = " << avg1 << "\n";
+    cout << "Time = " << seq_time << " seconds\n";
 
-    long long seq_sum = sum_sequential(arr);
-
-    end = omp_get_wtime();
-
-    cout << "\nSequential Sum           : " << seq_sum << endl;
-    cout << "Sequential Sum Time      : "
-         << (end - start) << " seconds\n";
-
-    // -------- Sequential Average --------
-    start = omp_get_wtime();
-
-    double seq_avg = average_sequential(arr);
-
-    end = omp_get_wtime();
-
-    cout << "\nSequential Average       : " << seq_avg << endl;
-    cout << "Sequential Avg Time      : "
-         << (end - start) << " seconds\n";
-
-    // -------- Parallel Minimum --------
-    start = omp_get_wtime();
-
-    int par_min = minval_parallel(arr);
-
-    end = omp_get_wtime();
-
-    cout << "\nParallel Minimum Value   : " << par_min << endl;
-    cout << "Parallel Min Time        : "
-         << (end - start) << " seconds\n";
-
-    // -------- Parallel Maximum --------
-    start = omp_get_wtime();
-
-    int par_max = maxval_parallel(arr);
-
-    end = omp_get_wtime();
-
-    cout << "\nParallel Maximum Value   : " << par_max << endl;
-    cout << "Parallel Max Time        : "
-         << (end - start) << " seconds\n";
-
-    // -------- Parallel Sum --------
-    start = omp_get_wtime();
-
-    long long par_sum = sum_parallel(arr);
-
-    end = omp_get_wtime();
-
-    cout << "\nParallel Sum             : " << par_sum << endl;
-    cout << "Parallel Sum Time        : "
-         << (end - start) << " seconds\n";
-
-    // -------- Parallel Average --------
-    start = omp_get_wtime();
-
-    double par_avg = average_parallel(arr);
-
-    end = omp_get_wtime();
-
-    cout << "\nParallel Average         : " << par_avg << endl;
-    cout << "Parallel Avg Time        : "
-         << (end - start) << " seconds\n";
+    cout << "\nParallel Results:\n";
+    cout << "Min = " << mn2 << "\n";
+    cout << "Max = " << mx2 << "\n";
+    cout << "Sum = " << sum2 << "\n";
+    cout << "Avg = " << avg2 << "\n";
+    cout << "Time = " << par_time << " seconds\n";
 
     return 0;
 }
